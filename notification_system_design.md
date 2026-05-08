@@ -50,3 +50,24 @@ admin --> can create exam events, see any students marks and even change them.
 Stage 2
 I'd use PostgreSQL for it's light-weight, fast and feature-rich
 The problem of finding the correct student which takes O(N) time would be the sole bottleneck of the DB when records grow from 50,000 to 5,000,000
+
+
+
+Stage 3
+Yes, it's logically correct — it fetches unread notifications for a student sorted by newest first.
+Why is it slow?
+With 5,000,000 rows, there's no index on studentID or isRead, so the database does a full table scan on every request. At this scale that's expensive.
+Fix — Add an index
+sql:
+CREATE INDEX idx_notifications_student_unread
+ON notifications (studentID, isRead, createdAt DESC);
+This turns the lookup from O(n) full scan to O(log n) index seek.
+
+
+No. Each index adds overhead on every INSERT/UPDATE
+Only index what you actually query on.
+Query — Students who got a placement notification in the last 7 days
+SELECT DISTINCT studentID
+FROM notifications
+WHERE notificationType = 'Placement'
+  AND createdAt >= NOW() - INTERVAL '7 days';
