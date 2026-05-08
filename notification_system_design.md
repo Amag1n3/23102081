@@ -84,3 +84,16 @@ yes, they'll be harder to implement but the losses due to a persistent connectio
 
 
 Stage 5
+No the sending and saving of the emails in the server shouldnt happen simultaneously
+save the email to DB first then retry if the sending of emails fails in-between
+
+function notify_all(student_ids, message):
+    insert_to_db(student_ids, message)
+    
+    for student_id in student_ids:
+        enqueue(job={ student_id, message })
+
+worker():
+    job = dequeue()
+    retry(send_email(job.student_id, job.message), attempts=3)
+    push_to_app(job.student_id, job.message)
