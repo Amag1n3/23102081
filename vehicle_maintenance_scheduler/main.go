@@ -1,6 +1,44 @@
 package main
 
-const (
-	endpoint = "http://4.224.186.213/evaluation-service/logs"
-	token    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJhbW9naHR5YWdpMjIwOTIwMDVAZ21haWwuY29tIiwiZXhwIjoxNzc4MjMzMjk2LCJpYXQiOjE3NzgyMzIzOTYsImlzcyI6IkFmZm9yZCBNZWRpY2FsIFRlY2hub2xvZ2llcyBQcml2YXRlIExpbWl0ZWQiLCJqdGkiOiI0OWNiYmYzYi03ZjI0LTQyMTgtOTM1Mi02MzcxZGU1MzQ2YWQiLCJsb2NhbGUiOiJlbi1JTiIsIm5hbWUiOiJhbW9naCB0eWFnaSIsInN1YiI6IjkwZTk2YTM1LWVhOGEtNDgyMy04MTI1LTRiMmE5MTcwYTU3ZCJ9LCJlbWFpbCI6ImFtb2dodHlhZ2kyMjA5MjAwNUBnbWFpbC5jb20iLCJuYW1lIjoiYW1vZ2ggdHlhZ2kiLCJyb2xsTm8iOiIyMzEwMjA4MSIsImFjY2Vzc0NvZGUiOiJNZHByaEUiLCJjbGllbnRJRCI6IjkwZTk2YTM1LWVhOGEtNDgyMy04MTI1LTRiMmE5MTcwYTU3ZCIsImNsaWVudFNlY3JldCI6IlV5YlROUUFDaHl6d1l1eEIifQ.e-PnajMP9m2Ft1Vh87ZS7FWEBDmCJLG4v7wm5ddr_EI"
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 )
+
+const (
+	authURL     = "http://4.224.186.213/evaluation-service/auth"
+	logEndpoint = "http://4.224.186.213/evaluation-service/vehicles"
+)
+
+var creds = map[string]string{
+	"email":        "amoghtyagi22092005@gmail.com",
+	"name":         "amogh tyagi",
+	"rollNo":       "23102081",
+	"accessCode":   "MdprhE",
+	"clientID":     "90e96a35-ea8a-4823-8125-4b2a9170a57d",
+	"clientSecret": "UybTNQAChyzwYuxB",
+}
+
+func getToken() (string, error) {
+	b, _ := json.Marshal(creds)
+	resp, err := http.Post(authURL, "application/json", bytes.NewReader(b))
+	if err != nil {
+		return "", fmt.Errorf("auth request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var result struct {
+		AccessToken string `json:"access_token"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", fmt.Errorf("auth parse failed: %w", err)
+	}
+	if result.AccessToken == "" {
+		return "", fmt.Errorf("empty token received")
+	}
+	return result.AccessToken, nil
+}
