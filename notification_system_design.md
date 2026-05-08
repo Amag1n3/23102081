@@ -71,3 +71,16 @@ SELECT DISTINCT studentID
 FROM notifications
 WHERE notificationType = 'Placement'
   AND createdAt >= NOW() - INTERVAL '7 days';
+
+
+Stage 4
+Cache the Fetched data with REDIS on the user's device.
+when refreshed, serve the cached data
+dont make a new request until either sufficient time passes or the server's database updates
+
+alternatively, we can use websockets as well
+yes, they'll be harder to implement but the losses due to a persistent connection which keeps updating by itself might be worth considering the gains by not sending the server a request every single time
+
+
+
+Stage 5
