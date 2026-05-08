@@ -49,3 +49,4 @@ admin --> can create exam events, see any students marks and even change them.
 
 Stage 2
 I'd use PostgreSQL for it's light-weight, fast and feature-rich
+The problem of finding the correct student which takes O(N) time would be the sole bottleneck of the DB when records grow from 50,000 to 5,000,000
